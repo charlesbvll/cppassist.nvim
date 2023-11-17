@@ -152,6 +152,7 @@ function M.AppendFile(str)
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
     local namespace_end_line = nil
 
+    -- Search for the namespace ending line
     for i, line in ipairs(lines) do
       if line:match("} // namespace [%w_]+") then
         namespace_end_line = i - 1
@@ -159,18 +160,24 @@ function M.AppendFile(str)
       end
     end
 
+    -- Determine where to insert the new lines
+    local insert_position
     if namespace_end_line then
-      local new_lines = M.SplitString(str, "\n")
-      table.insert(new_lines, 1, "")
-      vim.api.nvim_buf_set_lines(0, namespace_end_line, namespace_end_line, false, new_lines)
-
-      local new_cursor_pos = namespace_end_line + 3
-      vim.api.nvim_win_set_cursor(0, {new_cursor_pos, 0})
-
-      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('cc', true, false, true), 'n', true)
+      insert_position = namespace_end_line
     else
-      print("Namespace end not found.")
+      -- If no namespace is found, set insert position to the end of the file
+      insert_position = #lines
     end
+
+    -- Insert the new lines
+    local new_lines = M.SplitString(str, "\n")
+    table.insert(new_lines, 1, "")  -- Insert an empty string at the beginning
+    vim.api.nvim_buf_set_lines(0, insert_position, insert_position, false, new_lines)
+
+    -- Move cursor to the line where the text has been added and enter insert mode
+    local new_cursor_pos = insert_position + 3
+    vim.api.nvim_win_set_cursor(0, {new_cursor_pos, 0})
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('cc', true, false, true), 'n', true)
   end
 end
 
