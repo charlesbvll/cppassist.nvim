@@ -163,6 +163,11 @@ function M.AppendFile(str)
       local new_lines = M.SplitString(str, "\n")
       table.insert(new_lines, 1, "")
       vim.api.nvim_buf_set_lines(0, namespace_end_line, namespace_end_line, false, new_lines)
+
+      local new_cursor_pos = namespace_end_line + 2
+      vim.api.nvim_win_set_cursor(0, {new_cursor_pos, 0})
+
+      vim.cmd('normal! cc')
     else
       print("Namespace end not found.")
     end
