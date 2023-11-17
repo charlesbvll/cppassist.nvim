@@ -161,6 +161,7 @@ function M.AppendFile(str)
 
     if namespace_end_line then
       local new_lines = M.SplitString(str, "\n")
+      table.insert(new_lines, 1, "")
       vim.api.nvim_buf_set_lines(0, namespace_end_line, namespace_end_line, false, new_lines)
     else
       print("Namespace end not found.")
