@@ -146,15 +146,39 @@ function M.OpenFile(file)
 	end
 end
 
--- Append the target string to the end of the specified file
+-- Append the target string to the end of the namespace in the source file
+local ts_utils = require('nvim-treesitter.ts_utils')
+local parsers = require('nvim-treesitter.parsers')
+
 function M.AppendFile(str)
-	if str ~= "" then
-		local t = M.SplitString(str, "\n")
-		fn.append(fn.line("$"), " ")
-		for _, j in ipairs(t) do
-			fn.append(fn.line("$"), j)
-		end
-	end
+  if str ~= "" then
+    if not parsers.has_parser('cpp') then
+      print("Treesitter parser for C++ not available.")
+      return
+    end
+
+    local bufnr = vim.api.nvim_get_current_buf()
+    local parser = parsers.get_parser(bufnr, 'cpp')
+    local root_tree = parser:parse()[1]:root()
+
+    local namespace_end_line = nil
+    ts_utils.traverse_tree(root_tree, function(node)
+      if node:type() == 'namespace_definition' then
+        local last_child = node:named_child_count() > 0 and node:named_child(node:named_child_count() - 1) or nil
+        if last_child then
+          namespace_end_line = last_child:end_()[1]
+        end
+      end
+    end)
+
+    if namespace_end_line then
+      local lines = M.SplitString(str, "\n")
+      vim.api.nvim_buf_set_lines(bufnr, namespace_end_line, namespace_end_line, false, lines)
+    else
+      print("Namespace end not found.")
+    end
+  end
 end
+
 
 return M
