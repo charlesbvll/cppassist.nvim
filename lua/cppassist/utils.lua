@@ -167,7 +167,7 @@ function M.AppendFile(str)
       local new_cursor_pos = namespace_end_line + 3
       vim.api.nvim_win_set_cursor(0, {new_cursor_pos, 0})
 
-      vim.cmd('normal! cc')
+      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('cc', true, false, true), 'n', true)
     else
       print("Namespace end not found.")
     end
